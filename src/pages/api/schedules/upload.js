@@ -1,5 +1,6 @@
 import { getScheduleStore } from '../../../utils/schedule-store';
 import { parseScheduleWorkbook } from '../../../utils/schedule-excel';
+import { verifyAdminKey, isAdminConfigured } from '../../../utils/schedule-auth';
 
 export const config = {
     api: {
@@ -15,11 +16,12 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Metodo no permitido' });
     }
 
-    const adminKey = process.env.SCHEDULE_ADMIN_KEY;
-    if (!adminKey) {
-        return res.status(500).json({ error: 'El servidor no tiene configurada la clave de administrador (SCHEDULE_ADMIN_KEY).' });
+    const store = getScheduleStore();
+
+    if (!(await isAdminConfigured(store))) {
+        return res.status(400).json({ error: 'Primero configura la clave de administrador en /horarios/admin.' });
     }
-    if (req.body?.adminKey !== adminKey) {
+    if (!(await verifyAdminKey(req.body?.adminKey, store))) {
         return res.status(401).json({ error: 'Clave de administrador incorrecta.' });
     }
 
@@ -39,7 +41,6 @@ export default async function handler(req, res) {
             });
         }
 
-        const store = getScheduleStore();
         const uploadedAt = new Date().toISOString();
         const unitsSummary = [];
 

@@ -1,12 +1,7 @@
 import { getScheduleStore, normalizeKey } from '../../utils/schedule-store';
-import { hashPassword } from '../../utils/schedule-auth';
+import { hashPassword, verifyAdminKey } from '../../utils/schedule-auth';
 
 const VALID_ROLES = ['supervisor', 'agente'];
-
-function requireAdmin(req) {
-    const adminKey = process.env.SCHEDULE_ADMIN_KEY;
-    return Boolean(adminKey) && req.headers['x-admin-key'] === adminKey;
-}
 
 function toPublicUser(user) {
     const { passwordHash, salt, ...rest } = user;
@@ -14,11 +9,11 @@ function toPublicUser(user) {
 }
 
 export default async function handler(req, res) {
-    if (!requireAdmin(req)) {
+    const store = getScheduleStore();
+
+    if (!(await verifyAdminKey(req.headers['x-admin-key'], store))) {
         return res.status(401).json({ error: 'Clave de administrador incorrecta.' });
     }
-
-    const store = getScheduleStore();
 
     if (req.method === 'GET') {
         const index = (await store.get('users_index')) || { users: [] };

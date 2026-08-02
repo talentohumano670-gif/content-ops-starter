@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     // The session only carries identity; role/unidades are re-read from the live user
     // record on every request, so an admin edit or delete takes effect immediately.
-    const token = signSession({ username: user.username });
+    const token = await signSession({ username: user.username }, store);
     res.setHeader('Set-Cookie', serializeCookie(SESSION_COOKIE, token, { maxAge: 12 * 60 * 60 }));
 
     return res.status(200).json({ ok: true, username: user.username, nombre: user.nombre, role: user.role, unidades: unidadLabels });

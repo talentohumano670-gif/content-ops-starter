@@ -281,10 +281,197 @@ function UsersPanel({ adminKey }) {
     );
 }
 
+function FirstRunSetup({ onConfigured }) {
+    const [newKey, setNewKey] = useState('');
+    const [confirmKey, setConfirmKey] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        if (newKey !== confirmKey) {
+            setError('Las claves no coinciden.');
+            return;
+        }
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/admin/setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newKey })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.error || 'No se pudo configurar la clave.');
+                return;
+            }
+            onConfigured(newKey);
+        } catch {
+            setError('No se pudo conectar con el servidor.');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <main className="max-w-md mx-auto px-4 py-16">
+            <h1 className="text-2xl font-bold mb-2">Configura tu clave de administrador</h1>
+            <p className="text-gray-600 mb-6">
+                Es la primera vez que se usa este panel. Define aqui la clave que usaras para subir horarios y crear
+                usuarios — no necesitas configurar nada en Netlify.
+            </p>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <input
+                    type="password"
+                    value={newKey}
+                    onChange={(e) => setNewKey(e.target.value)}
+                    placeholder="Nueva clave (minimo 6 caracteres)"
+                    className="border border-gray-300 rounded px-4 py-2"
+                    required
+                    minLength={6}
+                />
+                <input
+                    type="password"
+                    value={confirmKey}
+                    onChange={(e) => setConfirmKey(e.target.value)}
+                    placeholder="Confirma la clave"
+                    className="border border-gray-300 rounded px-4 py-2"
+                    required
+                />
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50 self-start"
+                >
+                    {loading ? 'Guardando...' : 'Guardar y entrar'}
+                </button>
+            </form>
+            {error && <p className="mt-4 text-red-700 bg-red-50 border border-red-200 rounded px-4 py-3">{error}</p>}
+        </main>
+    );
+}
+
+function SecurityPanel({ adminKey, onKeyChanged }) {
+    const [currentKey, setCurrentKey] = useState('');
+    const [newKey, setNewKey] = useState('');
+    const [confirmKey, setConfirmKey] = useState('');
+    const [status, setStatus] = useState('idle');
+    const [message, setMessage] = useState('');
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        if (newKey !== confirmKey) {
+            setStatus('error');
+            setMessage('Las claves nuevas no coinciden.');
+            return;
+        }
+        setStatus('loading');
+        setMessage('');
+        try {
+            const res = await fetch('/api/admin/setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentKey, newKey })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setStatus('error');
+                setMessage(data.error || 'No se pudo cambiar la clave.');
+                return;
+            }
+            setStatus('success');
+            setMessage('Clave actualizada correctamente.');
+            setCurrentKey('');
+            setNewKey('');
+            setConfirmKey('');
+            onKeyChanged(newKey);
+        } catch {
+            setStatus('error');
+            setMessage('No se pudo conectar con el servidor.');
+        }
+    }
+
+    return (
+        <div className="max-w-md">
+            <h3 className="font-semibold text-lg mb-3">Cambiar clave de administrador</h3>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                <input
+                    type="password"
+                    value={currentKey}
+                    onChange={(e) => setCurrentKey(e.target.value)}
+                    placeholder="Clave actual"
+                    className="border border-gray-300 rounded px-3 py-2"
+                    required
+                />
+                <input
+                    type="password"
+                    value={newKey}
+                    onChange={(e) => setNewKey(e.target.value)}
+                    placeholder="Nueva clave"
+                    className="border border-gray-300 rounded px-3 py-2"
+                    required
+                    minLength={6}
+                />
+                <input
+                    type="password"
+                    value={confirmKey}
+                    onChange={(e) => setConfirmKey(e.target.value)}
+                    placeholder="Confirma la nueva clave"
+                    className="border border-gray-300 rounded px-3 py-2"
+                    required
+                />
+                <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50 self-start"
+                >
+                    {status === 'loading' ? 'Guardando...' : 'Cambiar clave'}
+                </button>
+            </form>
+            {message && (
+                <p className={`mt-4 rounded px-4 py-3 border ${status === 'success' ? 'text-green-800 bg-green-50 border-green-200' : 'text-red-700 bg-red-50 border-red-200'}`}>
+                    {message}
+                </p>
+            )}
+        </div>
+    );
+}
+
 export default function HorariosAdminPage() {
+    const [adminStatus, setAdminStatus] = useState(undefined); // undefined = loading
     const [adminKey, setAdminKey] = useState('');
     const [unlocked, setUnlocked] = useState(false);
     const [tab, setTab] = useState('upload');
+
+    useEffect(() => {
+        fetch('/api/admin/status')
+            .then((res) => res.json())
+            .then(setAdminStatus)
+            .catch(() => setAdminStatus({ configured: true, envManaged: false }));
+    }, []);
+
+    if (adminStatus === undefined) {
+        return null;
+    }
+
+    if (!adminStatus.configured) {
+        return (
+            <>
+                <Head>
+                    <title>Administrar Horarios</title>
+                    <meta name="robots" content="noindex, nofollow" />
+                </Head>
+                <FirstRunSetup
+                    onConfigured={(key) => {
+                        setAdminKey(key);
+                        setAdminStatus({ configured: true, envManaged: false });
+                        setUnlocked(true);
+                    }}
+                />
+            </>
+        );
+    }
 
     if (!unlocked) {
         return (
@@ -340,8 +527,18 @@ export default function HorariosAdminPage() {
                     >
                         Gestionar usuarios
                     </button>
+                    {!adminStatus.envManaged && (
+                        <button
+                            onClick={() => setTab('security')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 ${tab === 'security' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
+                        >
+                            Seguridad
+                        </button>
+                    )}
                 </div>
-                {tab === 'upload' ? <UploadPanel adminKey={adminKey} /> : <UsersPanel adminKey={adminKey} />}
+                {tab === 'upload' && <UploadPanel adminKey={adminKey} />}
+                {tab === 'users' && <UsersPanel adminKey={adminKey} />}
+                {tab === 'security' && <SecurityPanel adminKey={adminKey} onKeyChanged={setAdminKey} />}
             </main>
         </>
     );
