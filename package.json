@@ -9,6 +9,7 @@
     "dependencies": {
         "@algolia/autocomplete-js": "^1.17.1",
         "@algolia/autocomplete-theme-classic": "^1.17.1",
+        "@netlify/blobs": "^10.7.11",
         "algoliasearch": "^4.24.0",
         "classnames": "^2.5.1",
         "dayjs": "^1.11.11",
@@ -20,7 +21,8 @@
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "swiper": "^11.1.4",
-        "tailwindcss": "^3.4.3"
+        "tailwindcss": "^3.4.3",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "@base2/pretty-print-object": "^1.0.2",
