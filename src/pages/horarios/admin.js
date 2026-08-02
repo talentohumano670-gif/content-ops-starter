@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { useTheme } from '../../utils/use-theme';
 
 function readFileAsBase64(file) {
     return new Promise((resolve, reject) => {
@@ -8,6 +9,17 @@ function readFileAsBase64(file) {
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
+}
+
+function ThemeToggle({ theme, toggleTheme }) {
+    return (
+        <button
+            onClick={toggleTheme}
+            className="text-sm border border-gray-300 dark:border-gray-600 rounded px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-200"
+        >
+            {theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+        </button>
+    );
 }
 
 function ZonaPicker({ adminKey, zonas, setZonas, zonaKey, setZonaKey }) {
@@ -50,7 +62,7 @@ function ZonaPicker({ adminKey, zonas, setZonas, zonaKey, setZonaKey }) {
                 <select
                     value={zonaKey}
                     onChange={(e) => setZonaKey(e.target.value)}
-                    className="border border-gray-300 rounded px-3 py-2 flex-1"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2 flex-1"
                 >
                     <option value="">Selecciona una zona...</option>
                     {zonas.map((z) => (
@@ -62,27 +74,31 @@ function ZonaPicker({ adminKey, zonas, setZonas, zonaKey, setZonaKey }) {
                 <button
                     type="button"
                     onClick={() => setShowNew((v) => !v)}
-                    className="border border-gray-300 rounded px-3 py-2 text-sm hover:bg-gray-50"
+                    className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                     + Nueva zona
                 </button>
             </div>
-            {selected && <p className="text-xs text-gray-500 mt-1">Todas las unidades de este archivo quedaran marcadas como {selected.nombre}.</p>}
+            {selected && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Todas las unidades de este archivo quedaran marcadas como {selected.nombre}.
+                </p>
+            )}
 
             {showNew && (
-                <form onSubmit={handleCreateZona} className="mt-3 flex flex-col gap-2 border border-gray-200 rounded p-3 max-w-md">
+                <form onSubmit={handleCreateZona} className="mt-3 flex flex-col gap-2 border border-gray-200 dark:border-gray-700 rounded p-3 max-w-md">
                     <input
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
                         placeholder="Nombre de la zona (ej: Zona 3)"
-                        className="border border-gray-300 rounded px-3 py-2 text-sm"
+                        className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2 text-sm"
                         required
                     />
                     <input
                         value={responsable}
                         onChange={(e) => setResponsable(e.target.value)}
                         placeholder="Responsable de la zona"
-                        className="border border-gray-300 rounded px-3 py-2 text-sm"
+                        className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2 text-sm"
                         required
                     />
                     <button
@@ -92,7 +108,7 @@ function ZonaPicker({ adminKey, zonas, setZonas, zonaKey, setZonaKey }) {
                     >
                         {saving ? 'Guardando...' : 'Guardar zona'}
                     </button>
-                    {error && <p className="text-red-700 text-sm">{error}</p>}
+                    {error && <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>}
                 </form>
             )}
         </div>
@@ -152,7 +168,7 @@ function UploadPanel({ adminKey }) {
 
     return (
         <div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Sube el archivo Excel &quot;Horario Detallado de Unidades&quot; (una hoja por mes). El sistema detecta
                 automaticamente cada unidad (Nominativo) por cliente, con sus turnos diarios.
             </p>
@@ -164,7 +180,7 @@ function UploadPanel({ adminKey }) {
                     type="file"
                     accept=".xlsx,.xls"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="border border-gray-300 rounded px-4 py-2"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-4 py-2"
                     required
                 />
                 <button
@@ -177,12 +193,14 @@ function UploadPanel({ adminKey }) {
             </form>
 
             {status === 'error' && (
-                <p className="mt-6 text-red-700 bg-red-50 border border-red-200 rounded px-4 py-3">{message}</p>
+                <p className="mt-6 text-red-700 bg-red-50 border border-red-200 dark:bg-red-950 dark:border-red-800 dark:text-red-200 rounded px-4 py-3">
+                    {message}
+                </p>
             )}
 
             {status === 'success' && summary && (
                 <div className="mt-6 flex flex-col gap-4">
-                    <div className="text-green-800 bg-green-50 border border-green-200 rounded px-4 py-3">
+                    <div className="text-green-800 bg-green-50 border border-green-200 dark:bg-green-950 dark:border-green-800 dark:text-green-200 rounded px-4 py-3">
                         <p className="font-medium mb-2">{summary.totalUnidades} unidad(es) actualizada(s) correctamente.</p>
                         <ul className="list-disc list-inside text-sm max-h-64 overflow-y-auto">
                             {summary.unidades.map((u) => (
@@ -194,7 +212,7 @@ function UploadPanel({ adminKey }) {
                     </div>
 
                     {summary.agentesCreados?.length > 0 && (
-                        <div className="text-blue-900 bg-blue-50 border border-blue-200 rounded px-4 py-3">
+                        <div className="text-blue-900 bg-blue-50 border border-blue-200 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200 rounded px-4 py-3">
                             <p className="font-medium mb-2">
                                 Se crearon {summary.agentesCreados.length} usuario(s) agente por defecto (clave: <code>Liderman123</code>):
                             </p>
@@ -220,7 +238,7 @@ function UploadPanel({ adminKey }) {
                     )}
 
                     {summary.agentesOmitidos?.length > 0 && (
-                        <div className="text-amber-800 bg-amber-50 border border-amber-200 rounded px-4 py-3">
+                        <div className="text-amber-800 bg-amber-50 border border-amber-200 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200 rounded px-4 py-3">
                             <p className="font-medium mb-2">No se crearon {summary.agentesOmitidos.length} usuario(s) agente (nombre ya en uso):</p>
                             <ul className="list-disc list-inside text-sm">
                                 {summary.agentesOmitidos.map((a) => (
@@ -346,7 +364,11 @@ function UsersPanel({ adminKey }) {
 
     return (
         <div>
-            {error && <p className="mb-4 text-red-700 bg-red-50 border border-red-200 rounded px-4 py-3">{error}</p>}
+            {error && (
+                <p className="mb-4 text-red-700 bg-red-50 border border-red-200 dark:bg-red-950 dark:border-red-800 dark:text-red-200 rounded px-4 py-3">
+                    {error}
+                </p>
+            )}
 
             <h3 className="font-semibold text-lg mb-3">Crear usuario (supervisor o agente)</h3>
             <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 max-w-lg">
@@ -356,13 +378,17 @@ function UsersPanel({ adminKey }) {
                         <input
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="border border-gray-300 rounded px-3 py-2"
+                            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2"
                             required
                         />
                     </label>
                     <label className="flex flex-col gap-1 flex-1">
                         <span className="text-sm font-medium">Nombre</span>
-                        <input value={nombre} onChange={(e) => setNombre(e.target.value)} className="border border-gray-300 rounded px-3 py-2" />
+                        <input
+                            value={nombre}
+                            onChange={(e) => setNombre(e.target.value)}
+                            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2"
+                        />
                     </label>
                 </div>
                 <div className="flex gap-3">
@@ -372,7 +398,7 @@ function UsersPanel({ adminKey }) {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="border border-gray-300 rounded px-3 py-2"
+                            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2"
                             required
                         />
                     </label>
@@ -384,7 +410,7 @@ function UsersPanel({ adminKey }) {
                                 setRole(e.target.value);
                                 setSelectedUnits([]);
                             }}
-                            className="border border-gray-300 rounded px-3 py-2"
+                            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2"
                         >
                             <option value="agente">Agente (ve solo su unidad)</option>
                             <option value="supervisor">Supervisor (ve varias unidades)</option>
@@ -399,7 +425,7 @@ function UsersPanel({ adminKey }) {
                             <select
                                 value={zona}
                                 onChange={(e) => (e.target.value ? pickZona(e.target.value) : setZona(''))}
-                                className="border border-gray-300 rounded px-3 py-2 flex-1"
+                                className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2 flex-1"
                             >
                                 <option value="">Escoge una zona...</option>
                                 {zonas.map((z) => (
@@ -411,13 +437,17 @@ function UsersPanel({ adminKey }) {
                             <button
                                 type="button"
                                 onClick={pickAllUnidades}
-                                className={`border rounded px-3 py-2 text-sm whitespace-nowrap ${allUnidades ? 'bg-slate-800 text-white border-slate-800' : 'border-gray-300 hover:bg-gray-50'}`}
+                                className={`border rounded px-3 py-2 text-sm whitespace-nowrap ${
+                                    allUnidades
+                                        ? 'bg-slate-800 text-white border-slate-800'
+                                        : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                }`}
                             >
                                 Todas las unidades
                             </button>
                         </div>
                         {supervisorScopeChosen && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {allUnidades
                                     ? 'Vera todas las unidades de todas las zonas, incluidas las que se suban en el futuro.'
                                     : `Vera todas las unidades de "${zona}", incluidas las que se suban en el futuro para esa zona.`}
@@ -431,7 +461,7 @@ function UsersPanel({ adminKey }) {
                         <span className="text-sm font-medium block mb-1">
                             {role === 'agente' ? 'Unidad asignada' : 'O escoge unidades especificas'}
                         </span>
-                        <div className="border border-gray-300 rounded max-h-48 overflow-y-auto p-2">
+                        <div className="border border-gray-300 dark:border-gray-600 rounded max-h-48 overflow-y-auto p-2">
                             {units.map((u) => (
                                 <label key={u.key} className="flex items-center gap-2 text-sm py-1">
                                     <input
@@ -440,10 +470,12 @@ function UsersPanel({ adminKey }) {
                                         checked={selectedUnits.includes(u.key)}
                                         onChange={() => toggleUnit(u.key)}
                                     />
-                                    {u.unidad} — {u.cliente} <span className="text-gray-400">({u.zona})</span>
+                                    {u.unidad} — {u.cliente} <span className="text-gray-400 dark:text-gray-500">({u.zona})</span>
                                 </label>
                             ))}
-                            {units.length === 0 && <p className="text-sm text-gray-500">Sube un horario primero para poder asignar unidades.</p>}
+                            {units.length === 0 && (
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Sube un horario primero para poder asignar unidades.</p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -458,9 +490,9 @@ function UsersPanel({ adminKey }) {
             </form>
 
             <h3 className="font-semibold text-lg mb-3">Usuarios existentes</h3>
-            <div className="overflow-x-auto border border-gray-200 rounded">
+            <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded">
                 <table className="min-w-full text-sm text-left">
-                    <thead className="bg-gray-100">
+                    <thead className="bg-gray-100 dark:bg-gray-800">
                         <tr>
                             <th className="px-4 py-2">Usuario</th>
                             <th className="px-4 py-2">Nombre</th>
@@ -472,7 +504,7 @@ function UsersPanel({ adminKey }) {
                     </thead>
                     <tbody>
                         {users.map((u) => (
-                            <tr key={u.username} className="border-t border-gray-200">
+                            <tr key={u.username} className="border-t border-gray-200 dark:border-gray-700">
                                 <td className="px-4 py-2">{u.username}</td>
                                 <td className="px-4 py-2">{u.nombre}</td>
                                 <td className="px-4 py-2 capitalize">{u.role}</td>
@@ -481,7 +513,7 @@ function UsersPanel({ adminKey }) {
                                     {u.allUnidades ? 'Todas' : u.zona ? `Todas las de ${u.zona}` : u.unidades.join(', ')}
                                 </td>
                                 <td className="px-4 py-2">
-                                    <button onClick={() => handleDelete(u.username)} className="text-red-600 hover:underline">
+                                    <button onClick={() => handleDelete(u.username)} className="text-red-600 dark:text-red-400 hover:underline">
                                         Eliminar
                                     </button>
                                 </td>
@@ -494,7 +526,7 @@ function UsersPanel({ adminKey }) {
     );
 }
 
-function FirstRunSetup({ onConfigured }) {
+function FirstRunSetup({ onConfigured, theme, toggleTheme }) {
     const [newKey, setNewKey] = useState('');
     const [confirmKey, setConfirmKey] = useState('');
     const [error, setError] = useState('');
@@ -529,8 +561,11 @@ function FirstRunSetup({ onConfigured }) {
 
     return (
         <main className="max-w-md mx-auto px-4 py-16">
+            <div className="flex justify-end mb-4">
+                <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+            </div>
             <h1 className="text-2xl font-bold mb-2">Configura tu clave de administrador</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Es la primera vez que se usa este panel. Define aqui la clave que usaras para subir horarios y crear
                 usuarios — no necesitas configurar nada en Netlify.
             </p>
@@ -540,7 +575,7 @@ function FirstRunSetup({ onConfigured }) {
                     value={newKey}
                     onChange={(e) => setNewKey(e.target.value)}
                     placeholder="Nueva clave (minimo 6 caracteres)"
-                    className="border border-gray-300 rounded px-4 py-2"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-4 py-2"
                     required
                     minLength={6}
                 />
@@ -549,7 +584,7 @@ function FirstRunSetup({ onConfigured }) {
                     value={confirmKey}
                     onChange={(e) => setConfirmKey(e.target.value)}
                     placeholder="Confirma la clave"
-                    className="border border-gray-300 rounded px-4 py-2"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-4 py-2"
                     required
                 />
                 <button
@@ -560,7 +595,11 @@ function FirstRunSetup({ onConfigured }) {
                     {loading ? 'Guardando...' : 'Guardar y entrar'}
                 </button>
             </form>
-            {error && <p className="mt-4 text-red-700 bg-red-50 border border-red-200 rounded px-4 py-3">{error}</p>}
+            {error && (
+                <p className="mt-4 text-red-700 bg-red-50 border border-red-200 dark:bg-red-950 dark:border-red-800 dark:text-red-200 rounded px-4 py-3">
+                    {error}
+                </p>
+            )}
         </main>
     );
 }
@@ -614,7 +653,7 @@ function SecurityPanel({ adminKey, onKeyChanged }) {
                     value={currentKey}
                     onChange={(e) => setCurrentKey(e.target.value)}
                     placeholder="Clave actual"
-                    className="border border-gray-300 rounded px-3 py-2"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2"
                     required
                 />
                 <input
@@ -622,7 +661,7 @@ function SecurityPanel({ adminKey, onKeyChanged }) {
                     value={newKey}
                     onChange={(e) => setNewKey(e.target.value)}
                     placeholder="Nueva clave"
-                    className="border border-gray-300 rounded px-3 py-2"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2"
                     required
                     minLength={6}
                 />
@@ -631,7 +670,7 @@ function SecurityPanel({ adminKey, onKeyChanged }) {
                     value={confirmKey}
                     onChange={(e) => setConfirmKey(e.target.value)}
                     placeholder="Confirma la nueva clave"
-                    className="border border-gray-300 rounded px-3 py-2"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-3 py-2"
                     required
                 />
                 <button
@@ -643,7 +682,13 @@ function SecurityPanel({ adminKey, onKeyChanged }) {
                 </button>
             </form>
             {message && (
-                <p className={`mt-4 rounded px-4 py-3 border ${status === 'success' ? 'text-green-800 bg-green-50 border-green-200' : 'text-red-700 bg-red-50 border-red-200'}`}>
+                <p
+                    className={`mt-4 rounded px-4 py-3 border ${
+                        status === 'success'
+                            ? 'text-green-800 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800 dark:text-green-200'
+                            : 'text-red-700 bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800 dark:text-red-200'
+                    }`}
+                >
                     {message}
                 </p>
             )}
@@ -652,6 +697,7 @@ function SecurityPanel({ adminKey, onKeyChanged }) {
 }
 
 export default function HorariosAdminPage() {
+    const { theme, toggleTheme } = useTheme();
     const [adminStatus, setAdminStatus] = useState(undefined); // undefined = loading
     const [adminKey, setAdminKey] = useState('');
     const [unlocked, setUnlocked] = useState(false);
@@ -664,6 +710,14 @@ export default function HorariosAdminPage() {
             .catch(() => setAdminStatus({ configured: true, envManaged: false }));
     }, []);
 
+    function handleLock() {
+        // Only clears this browser tab's local "unlocked" state and typed key — nothing
+        // server-side is touched, so uploaded schedules/users are untouched. Lets someone
+        // else use this same browser to log in as a different admin/agente/supervisor.
+        setUnlocked(false);
+        setAdminKey('');
+    }
+
     if (adminStatus === undefined) {
         return null;
     }
@@ -675,13 +729,17 @@ export default function HorariosAdminPage() {
                     <title>Administrar Horarios</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
-                <FirstRunSetup
-                    onConfigured={(key) => {
-                        setAdminKey(key);
-                        setAdminStatus({ configured: true, envManaged: false });
-                        setUnlocked(true);
-                    }}
-                />
+                <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
+                    <FirstRunSetup
+                        theme={theme}
+                        toggleTheme={toggleTheme}
+                        onConfigured={(key) => {
+                            setAdminKey(key);
+                            setAdminStatus({ configured: true, envManaged: false });
+                            setUnlocked(true);
+                        }}
+                    />
+                </div>
             </>
         );
     }
@@ -693,28 +751,33 @@ export default function HorariosAdminPage() {
                     <title>Administrar Horarios</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
-                <main className="max-w-md mx-auto px-4 py-16">
-                    <h1 className="text-2xl font-bold mb-6">Acceso de administrador</h1>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            setUnlocked(true);
-                        }}
-                        className="flex flex-col gap-4"
-                    >
-                        <input
-                            type="password"
-                            value={adminKey}
-                            onChange={(e) => setAdminKey(e.target.value)}
-                            placeholder="Clave de administrador"
-                            className="border border-gray-300 rounded px-4 py-2"
-                            required
-                        />
-                        <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 self-start">
-                            Entrar
-                        </button>
-                    </form>
-                </main>
+                <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
+                    <main className="max-w-md mx-auto px-4 py-16">
+                        <div className="flex justify-end mb-4">
+                            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+                        </div>
+                        <h1 className="text-2xl font-bold mb-6">Acceso de administrador</h1>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                setUnlocked(true);
+                            }}
+                            className="flex flex-col gap-4"
+                        >
+                            <input
+                                type="password"
+                                value={adminKey}
+                                onChange={(e) => setAdminKey(e.target.value)}
+                                placeholder="Clave de administrador"
+                                className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-4 py-2"
+                                required
+                            />
+                            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 self-start">
+                                Entrar
+                            </button>
+                        </form>
+                    </main>
+                </div>
             </>
         );
     }
@@ -725,34 +788,53 @@ export default function HorariosAdminPage() {
                 <title>Administrar Horarios</title>
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
-            <main className="max-w-4xl mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-6">Administrar Horarios</h1>
-                <div className="flex gap-2 mb-6 border-b border-gray-200">
-                    <button
-                        onClick={() => setTab('upload')}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 ${tab === 'upload' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
-                    >
-                        Subir horario
-                    </button>
-                    <button
-                        onClick={() => setTab('users')}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 ${tab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
-                    >
-                        Gestionar usuarios
-                    </button>
-                    {!adminStatus.envManaged && (
+            <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
+                <main className="max-w-4xl mx-auto px-4 py-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-3xl font-bold">Administrar Horarios</h1>
+                        <div className="flex gap-2">
+                            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+                            <button
+                                onClick={handleLock}
+                                className="text-sm border border-gray-300 dark:border-gray-600 rounded px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                            >
+                                Cerrar sesion
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
                         <button
-                            onClick={() => setTab('security')}
-                            className={`px-4 py-2 text-sm font-medium border-b-2 ${tab === 'security' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
+                            onClick={() => setTab('upload')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                                tab === 'upload' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-gray-400'
+                            }`}
                         >
-                            Seguridad
+                            Subir horario
                         </button>
-                    )}
-                </div>
-                {tab === 'upload' && <UploadPanel adminKey={adminKey} />}
-                {tab === 'users' && <UsersPanel adminKey={adminKey} />}
-                {tab === 'security' && <SecurityPanel adminKey={adminKey} onKeyChanged={setAdminKey} />}
-            </main>
+                        <button
+                            onClick={() => setTab('users')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                                tab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-gray-400'
+                            }`}
+                        >
+                            Gestionar usuarios
+                        </button>
+                        {!adminStatus.envManaged && (
+                            <button
+                                onClick={() => setTab('security')}
+                                className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                                    tab === 'security' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-gray-400'
+                                }`}
+                            >
+                                Seguridad
+                            </button>
+                        )}
+                    </div>
+                    {tab === 'upload' && <UploadPanel adminKey={adminKey} />}
+                    {tab === 'users' && <UsersPanel adminKey={adminKey} />}
+                    {tab === 'security' && <SecurityPanel adminKey={adminKey} onKeyChanged={setAdminKey} />}
+                </main>
+            </div>
         </>
     );
 }

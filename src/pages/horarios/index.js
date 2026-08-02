@@ -1,35 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { useTheme } from '../../utils/use-theme';
 
 const TURNO_COLORS = {
-    N: 'bg-slate-700 text-white',
-    D: 'bg-blue-50 text-blue-900',
-    F: 'bg-green-50 text-green-900',
-    V: 'bg-amber-100 text-amber-900'
+    N: 'bg-slate-700 text-white dark:bg-slate-600',
+    D: 'bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-200',
+    F: 'bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-200',
+    V: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200'
 };
+
+function ThemeToggle({ theme, toggleTheme }) {
+    return (
+        <button
+            onClick={toggleTheme}
+            className="text-sm border border-gray-300 dark:border-gray-600 rounded px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-200"
+        >
+            {theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+        </button>
+    );
+}
 
 function ScheduleTable({ block }) {
     return (
         <div className="mb-8">
             <h3 className="font-semibold text-lg mb-1">{block.servicio}</h3>
-            {block.ubicacion && <p className="text-sm text-gray-500 mb-2">{block.ubicacion}</p>}
-            <div className="overflow-x-auto border border-gray-200 rounded">
+            {block.ubicacion && <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{block.ubicacion}</p>}
+            <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded">
                 <table className="text-sm text-center border-collapse">
-                    <thead className="bg-gray-100">
+                    <thead className="bg-gray-100 dark:bg-gray-800">
                         <tr>
-                            <th className="px-3 py-2 text-left sticky left-0 bg-gray-100">Colaborador</th>
+                            <th className="px-3 py-2 text-left sticky left-0 bg-gray-100 dark:bg-gray-800">Colaborador</th>
                             {block.dias.map((d, i) => (
                                 <th key={i} className="px-2 py-1 min-w-[36px]">
                                     <div>{d.letra}</div>
-                                    <div className="text-gray-500">{d.dia}</div>
+                                    <div className="text-gray-500 dark:text-gray-400">{d.dia}</div>
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
                         {block.empleados.map((emp) => (
-                            <tr key={emp.orden} className="border-t border-gray-200">
-                                <td className="px-3 py-2 text-left whitespace-nowrap sticky left-0 bg-white">{emp.nombre}</td>
+                            <tr key={emp.orden} className="border-t border-gray-200 dark:border-gray-700">
+                                <td className="px-3 py-2 text-left whitespace-nowrap sticky left-0 bg-white dark:bg-gray-900">{emp.nombre}</td>
                                 {emp.turnos.map((t, i) => (
                                     <td key={i} className={`px-2 py-1 ${TURNO_COLORS[t] || ''}`}>
                                         {t}
@@ -54,7 +66,7 @@ function UnitSchedule({ schedule }) {
                 <h2 className="text-xl font-semibold">
                     {schedule.unidad} — {schedule.cliente}
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                     {schedule.zona} · {schedule.ciudad}
                     {schedule.responsable && ` · Responsable: ${schedule.responsable}`}
                 </p>
@@ -65,7 +77,9 @@ function UnitSchedule({ schedule }) {
                         key={m}
                         onClick={() => setMes(m)}
                         className={`px-3 py-1 rounded text-sm border ${
-                            m === mes ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-300'
+                            m === mes
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200'
                         }`}
                     >
                         {m}
@@ -79,7 +93,7 @@ function UnitSchedule({ schedule }) {
     );
 }
 
-function LoginForm({ onLogin }) {
+function LoginForm({ onLogin, theme, toggleTheme }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -110,8 +124,11 @@ function LoginForm({ onLogin }) {
 
     return (
         <main className="max-w-md mx-auto px-4 py-16">
+            <div className="flex justify-end mb-4">
+                <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+            </div>
             <h1 className="text-3xl font-bold mb-2">Consulta de Horarios</h1>
-            <p className="text-gray-600 mb-8">Ingresa tus credenciales para ver el horario de tu unidad.</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">Ingresa tus credenciales para ver el horario de tu unidad.</p>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <label className="flex flex-col gap-1">
                     <span className="text-sm font-medium">Usuario</span>
@@ -119,7 +136,7 @@ function LoginForm({ onLogin }) {
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="border border-gray-300 rounded px-4 py-2"
+                        className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-4 py-2"
                         required
                     />
                 </label>
@@ -129,7 +146,7 @@ function LoginForm({ onLogin }) {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="border border-gray-300 rounded px-4 py-2"
+                        className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded px-4 py-2"
                         required
                     />
                 </label>
@@ -141,12 +158,17 @@ function LoginForm({ onLogin }) {
                     {loading ? 'Ingresando...' : 'Ingresar'}
                 </button>
             </form>
-            {error && <p className="mt-4 text-red-700 bg-red-50 border border-red-200 rounded px-4 py-3">{error}</p>}
+            {error && (
+                <p className="mt-4 text-red-700 bg-red-50 border border-red-200 dark:bg-red-950 dark:border-red-800 dark:text-red-200 rounded px-4 py-3">
+                    {error}
+                </p>
+            )}
         </main>
     );
 }
 
 export default function HorariosPage() {
+    const { theme, toggleTheme } = useTheme();
     const [session, setSession] = useState(undefined); // undefined = loading, null = logged out
     const [schedules, setSchedules] = useState(null);
     const [selectedKey, setSelectedKey] = useState(null);
@@ -192,7 +214,9 @@ export default function HorariosPage() {
                     <title>Consulta de Horarios</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                 </Head>
-                <LoginForm onLogin={setSession} />
+                <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
+                    <LoginForm onLogin={setSession} theme={theme} toggleTheme={toggleTheme} />
+                </div>
             </>
         );
     }
@@ -206,43 +230,57 @@ export default function HorariosPage() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
-            <main className="max-w-5xl mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-2xl font-bold">Hola, {session.nombre}</h1>
-                        <p className="text-sm text-gray-500 capitalize">{session.role}</p>
-                    </div>
-                    <button onClick={handleLogout} className="text-sm border border-gray-300 rounded px-4 py-2 hover:bg-gray-50">
-                        Cerrar sesion
-                    </button>
-                </div>
-
-                {loadError && <p className="text-red-700 bg-red-50 border border-red-200 rounded px-4 py-3 mb-6">{loadError}</p>}
-
-                {schedules && schedules.length > 1 && (
-                    <div className="flex gap-2 mb-6 flex-wrap">
-                        {schedules.map((s) => (
+            <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
+                <main className="max-w-5xl mx-auto px-4 py-8">
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <h1 className="text-2xl font-bold">Hola, {session.nombre}</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{session.role}</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
                             <button
-                                key={s.key}
-                                onClick={() => setSelectedKey(s.key)}
-                                className={`px-3 py-1.5 rounded text-sm border ${
-                                    s.key === selectedKey ? 'bg-slate-800 text-white border-slate-800' : 'bg-white border-gray-300'
-                                }`}
+                                onClick={handleLogout}
+                                className="text-sm border border-gray-300 dark:border-gray-600 rounded px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
-                                {s.unidad}
+                                Cerrar sesion
                             </button>
-                        ))}
+                        </div>
                     </div>
+
+                    {loadError && (
+                        <p className="text-red-700 bg-red-50 border border-red-200 dark:bg-red-950 dark:border-red-800 dark:text-red-200 rounded px-4 py-3 mb-6">
+                            {loadError}
+                        </p>
+                    )}
+
+                    {schedules && schedules.length > 1 && (
+                        <div className="flex gap-2 mb-6 flex-wrap">
+                            {schedules.map((s) => (
+                                <button
+                                    key={s.key}
+                                    onClick={() => setSelectedKey(s.key)}
+                                    className={`px-3 py-1.5 rounded text-sm border ${
+                                        s.key === selectedKey
+                                            ? 'bg-slate-800 text-white border-slate-800'
+                                            : 'bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200'
+                                    }`}
+                                >
+                                    {s.unidad}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {schedules && schedules.length === 0 && (
+                        <p className="text-amber-700 bg-amber-50 border border-amber-200 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200 rounded px-4 py-3">
+                            Todavia no hay un horario cargado para tu unidad asignada.
+                        </p>
                 )}
 
-                {schedules && schedules.length === 0 && (
-                    <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded px-4 py-3">
-                        Todavia no hay un horario cargado para tu unidad asignada.
-                    </p>
-                )}
-
-                {selected && <UnitSchedule schedule={selected} />}
-            </main>
+                    {selected && <UnitSchedule schedule={selected} />}
+                </main>
+            </div>
         </>
     );
 }
