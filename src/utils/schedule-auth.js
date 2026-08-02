@@ -74,6 +74,26 @@ export async function getSessionFromRequest(req, store) {
 }
 
 /**
+ * A supervisor tied to a zona (or flagged allUnidades) sees that scope dynamically — units
+ * uploaded after the account was created are included automatically, not just a frozen
+ * snapshot from creation time. Only a manually hand-picked supervisor (neither zona nor
+ * allUnidades set) or an agente uses the static `unidades` list.
+ */
+export async function resolveUserUnidades(user, store) {
+    if (user.role === 'agente') return user.unidades || [];
+
+    if (user.allUnidades) {
+        const index = (await store.get('_units_index')) || { units: [] };
+        return index.units.map((u) => u.key);
+    }
+    if (user.zona) {
+        const index = (await store.get('_units_index')) || { units: [] };
+        return index.units.filter((u) => u.zona === user.zona).map((u) => u.key);
+    }
+    return user.unidades || [];
+}
+
+/**
  * Resolves the session's username against the live users_index rather than trusting
  * role/unidades baked into the signed token, so a deleted or reassigned account loses
  * access immediately instead of waiting out the token's TTL.
@@ -87,7 +107,8 @@ export async function resolveSessionUser(req, store) {
     const user = index.users.find((u) => normalizeKey(u.username) === usernameKey);
     if (!user) return null;
 
-    return { username: user.username, nombre: user.nombre, role: user.role, unidades: user.unidades };
+    const unidades = await resolveUserUnidades(user, store);
+    return { username: user.username, nombre: user.nombre, role: user.role, zona: user.zona, allUnidades: user.allUnidades, unidades };
 }
 
 /**

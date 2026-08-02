@@ -1,5 +1,5 @@
 import { getScheduleStore, normalizeKey } from '../../../utils/schedule-store';
-import { verifyPassword, signSession, serializeCookie, SESSION_COOKIE } from '../../../utils/schedule-auth';
+import { verifyPassword, signSession, serializeCookie, SESSION_COOKIE, resolveUserUnidades } from '../../../utils/schedule-auth';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -22,7 +22,8 @@ export default async function handler(req, res) {
     }
 
     const unitsIndex = (await store.get('_units_index')) || { units: [] };
-    const unidadLabels = user.unidades.map((key) => {
+    const unidadKeys = await resolveUserUnidades(user, store);
+    const unidadLabels = unidadKeys.map((key) => {
         const found = unitsIndex.units.find((u) => u.key === key);
         return found ? { key, unidad: found.unidad, cliente: found.cliente } : { key, unidad: key, cliente: '' };
     });

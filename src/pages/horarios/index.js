@@ -56,6 +56,7 @@ function UnitSchedule({ schedule }) {
                 </h2>
                 <p className="text-sm text-gray-500">
                     {schedule.zona} · {schedule.ciudad}
+                    {schedule.responsable && ` · Responsable: ${schedule.responsable}`}
                 </p>
             </div>
             <div className="flex gap-2 mb-4 flex-wrap">
