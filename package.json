@@ -9,18 +9,22 @@
     "dependencies": {
         "@algolia/autocomplete-js": "^1.17.1",
         "@algolia/autocomplete-theme-classic": "^1.17.1",
+        "@netlify/blobs": "^10.7.11",
         "algoliasearch": "^4.24.0",
         "classnames": "^2.5.1",
         "dayjs": "^1.11.11",
         "front-matter": "^4.0.2",
         "glob": "^10.4.2",
+        "html2canvas": "^1.4.1",
+        "jspdf": "^2.5.2",
         "markdown-to-jsx": "^7.7.3",
         "marked": "^14.1.2",
         "next": "15.5.12",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "swiper": "^11.1.4",
-        "tailwindcss": "^3.4.3"
+        "tailwindcss": "^3.4.3",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "@base2/pretty-print-object": "^1.0.2",

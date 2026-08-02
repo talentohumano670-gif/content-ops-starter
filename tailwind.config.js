@@ -2,6 +2,7 @@ const plugin = require('tailwindcss/plugin');
 const themeStyle = require('./content/data/style.json');
 
 module.exports = {
+    darkMode: 'class',
     content: ['./src/**/*.{js,ts,jsx,tsx}', './content/**/*', './.sourcebit-nextjs-cache.json'],
     safelist: [
         'text-neutral',

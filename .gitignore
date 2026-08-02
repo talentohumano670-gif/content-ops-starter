@@ -42,3 +42,6 @@ yarn-error.log*
 .idea
 
 tmp*
+
+# local fallback storage for uploaded work schedules (used only outside Netlify Blobs context)
+/.data
