@@ -1,6 +1,67 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import { useTheme } from '../../utils/use-theme';
+
+function stripDarkClasses(root) {
+    const elements = [root, ...root.querySelectorAll('*')];
+    for (const el of elements) {
+        if (typeof el.className !== 'string') continue;
+        el.className = el.className
+            .split(' ')
+            .filter((c) => !c.startsWith('dark:'))
+            .join(' ');
+    }
+}
+
+/**
+ * Renders an off-screen light-mode clone of the schedule and snapshots it, so the PDF
+ * always has a white background with the same turno colors regardless of the on-screen
+ * theme — dark: classes are literal strings on each element, so stripping them guarantees
+ * the light look without ever touching (or flashing) the visible page.
+ */
+async function downloadSchedulePdf(node, filename, headerLines) {
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
+
+    const clone = node.cloneNode(true);
+    stripDarkClasses(clone);
+
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'fixed';
+    wrapper.style.top = '0';
+    wrapper.style.left = '-99999px';
+    wrapper.style.background = '#ffffff';
+    wrapper.style.padding = '24px';
+    wrapper.style.width = 'max-content';
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    try {
+        const canvas = await html2canvas(clone, { backgroundColor: '#ffffff', scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 24;
+
+        pdf.setFontSize(14);
+        pdf.text(headerLines[0], margin, margin + 12);
+        pdf.setFontSize(10);
+        pdf.setTextColor(100);
+        pdf.text(headerLines[1], margin, margin + 28);
+
+        const topOffset = margin + 40;
+        const availableWidth = pageWidth - margin * 2;
+        const availableHeight = pageHeight - topOffset - margin;
+        const ratio = Math.min(availableWidth / canvas.width, availableHeight / canvas.height);
+        const imgWidth = canvas.width * ratio;
+        const imgHeight = canvas.height * ratio;
+        pdf.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, topOffset, imgWidth, imgHeight);
+        pdf.save(filename);
+    } finally {
+        document.body.removeChild(wrapper);
+    }
+}
 
 const TURNO_COLORS = {
     N: 'bg-slate-700 text-white dark:bg-slate-600',
@@ -56,20 +117,48 @@ function ScheduleTable({ block }) {
     );
 }
 
-function UnitSchedule({ schedule }) {
+function UnitSchedule({ schedule, canDownload }) {
     const meses = Object.keys(schedule.meses);
     const [mes, setMes] = useState(meses[0]);
+    const [downloading, setDownloading] = useState(false);
+    const exportRef = useRef(null);
+
+    async function handleDownload() {
+        if (!exportRef.current) return;
+        setDownloading(true);
+        try {
+            const filename = `horario-${schedule.unidad}-${mes}.pdf`.replace(/\s+/g, '_');
+            const headerLines = [
+                `${schedule.unidad} — ${schedule.cliente}`,
+                `${schedule.zona} · ${schedule.ciudad}${schedule.responsable ? ` · Responsable: ${schedule.responsable}` : ''} · ${mes}`
+            ];
+            await downloadSchedulePdf(exportRef.current, filename, headerLines);
+        } finally {
+            setDownloading(false);
+        }
+    }
 
     return (
         <div>
-            <div className="mb-4">
-                <h2 className="text-xl font-semibold">
-                    {schedule.unidad} — {schedule.cliente}
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {schedule.zona} · {schedule.ciudad}
-                    {schedule.responsable && ` · Responsable: ${schedule.responsable}`}
-                </p>
+            <div className="mb-4 flex justify-between items-start gap-4 flex-wrap">
+                <div>
+                    <h2 className="text-xl font-semibold">
+                        {schedule.unidad} — {schedule.cliente}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {schedule.zona} · {schedule.ciudad}
+                        {schedule.responsable && ` · Responsable: ${schedule.responsable}`}
+                    </p>
+                </div>
+                {canDownload && (
+                    <button
+                        onClick={handleDownload}
+                        disabled={downloading}
+                        className="text-sm border border-gray-300 dark:border-gray-600 rounded px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+                    >
+                        {downloading ? 'Generando PDF...' : 'Descargar PDF'}
+                    </button>
+                )}
             </div>
             <div className="flex gap-2 mb-4 flex-wrap">
                 {meses.map((m) => (
@@ -86,9 +175,11 @@ function UnitSchedule({ schedule }) {
                     </button>
                 ))}
             </div>
-            {schedule.meses[mes].map((block, i) => (
-                <ScheduleTable key={i} block={block} />
-            ))}
+            <div ref={exportRef}>
+                {schedule.meses[mes].map((block, i) => (
+                    <ScheduleTable key={i} block={block} />
+                ))}
+            </div>
         </div>
     );
 }
@@ -278,7 +369,7 @@ export default function HorariosPage() {
                         </p>
                 )}
 
-                    {selected && <UnitSchedule schedule={selected} />}
+                    {selected && <UnitSchedule schedule={selected} canDownload={session.role === 'supervisor'} />}
                 </main>
             </div>
         </>
