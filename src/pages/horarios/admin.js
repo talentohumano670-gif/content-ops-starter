@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useTheme } from '../../utils/use-theme';
+import { BrandMarks, BrandFooter } from '../../components/HorariosBranding';
 
 function readFileAsBase64(file) {
     return new Promise((resolve, reject) => {
@@ -729,6 +730,7 @@ export default function HorariosAdminPage() {
                     <title>Administrar Horarios</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
+                <BrandMarks />
                 <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
                     <FirstRunSetup
                         theme={theme}
@@ -739,6 +741,7 @@ export default function HorariosAdminPage() {
                             setUnlocked(true);
                         }}
                     />
+                    <BrandFooter />
                 </div>
             </>
         );
@@ -751,6 +754,7 @@ export default function HorariosAdminPage() {
                     <title>Administrar Horarios</title>
                     <meta name="robots" content="noindex, nofollow" />
                 </Head>
+                <BrandMarks />
                 <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
                     <main className="max-w-md mx-auto px-4 py-16">
                         <div className="flex justify-end mb-4">
@@ -776,6 +780,7 @@ export default function HorariosAdminPage() {
                                 Entrar
                             </button>
                         </form>
+                        <BrandFooter />
                     </main>
                 </div>
             </>
@@ -788,6 +793,7 @@ export default function HorariosAdminPage() {
                 <title>Administrar Horarios</title>
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
+            <BrandMarks />
             <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
                 <main className="max-w-4xl mx-auto px-4 py-8">
                     <div className="flex justify-between items-center mb-6">
@@ -833,6 +839,7 @@ export default function HorariosAdminPage() {
                     {tab === 'upload' && <UploadPanel adminKey={adminKey} />}
                     {tab === 'users' && <UsersPanel adminKey={adminKey} />}
                     {tab === 'security' && <SecurityPanel adminKey={adminKey} onKeyChanged={setAdminKey} />}
+                    <BrandFooter />
                 </main>
             </div>
         </>

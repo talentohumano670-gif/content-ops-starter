@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import { useTheme } from '../../utils/use-theme';
+import { BrandMarks, BrandFooter } from '../../components/HorariosBranding';
 
 function stripDarkClasses(root) {
     const elements = [root, ...root.querySelectorAll('*')];
@@ -254,6 +255,7 @@ function LoginForm({ onLogin, theme, toggleTheme }) {
                     {error}
                 </p>
             )}
+            <BrandFooter />
         </main>
     );
 }
@@ -305,6 +307,7 @@ export default function HorariosPage() {
                     <title>Consulta de Horarios</title>
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                 </Head>
+                <BrandMarks />
                 <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
                     <LoginForm onLogin={setSession} theme={theme} toggleTheme={toggleTheme} />
                 </div>
@@ -321,6 +324,7 @@ export default function HorariosPage() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
+            <BrandMarks />
             <div className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
                 <main className="max-w-5xl mx-auto px-4 py-8">
                     <div className="flex justify-between items-center mb-8">
@@ -370,6 +374,7 @@ export default function HorariosPage() {
                 )}
 
                     {selected && <UnitSchedule schedule={selected} canDownload={session.role === 'supervisor'} />}
+                    <BrandFooter />
                 </main>
             </div>
         </>
